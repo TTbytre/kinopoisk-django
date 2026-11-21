@@ -1,0 +1,104 @@
+{% extends "cinema/base.html" %}
+{% block title %}Каталог кино — Кинопоиск{% endblock %}
+{% block content %}
+<div style="display:grid; grid-template-columns: 250px 1fr; gap: 20px;">
+  <aside class="card">
+    <h3>Фильтры</h3>
+    <form method="get">
+      {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+      <p>
+        <label>Тип:</label><br>
+        <select name="type" style="width:100%; padding:6px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+          <option value="">Все</option>
+          <option value="movie" {% if selected_type == 'movie' %}selected{% endif %}>Фильмы</option>
+          <option value="series" {% if selected_type == 'series' %}selected{% endif %}>Сериалы</option>
+          <option value="anime" {% if selected_type == 'anime' %}selected{% endif %}>Аниме</option>
+        </select>
+      </p>
+      <p>
+        <label>Жанр:</label><br>
+        <select name="genre" style="width:100%; padding:6px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+          <option value="">Все жанры</option>
+          {% for g in genres %}
+            <option value="{{ g.slug }}" {% if g.slug == selected_genre %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label>Год выхода:</label><br>
+        <select name="year" style="width:100%; padding:6px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+          <option value="">Любой год</option>
+          {% for y in years %}
+            <option value="{{ y }}" {% if y|stringformat:"s" == selected_year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label>Сортировка:</label><br>
+        <select name="sort" style="width:100%; padding:6px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>По рейтингу</option>
+          <option value="new" {% if sort == 'new' %}selected{% endif %}>Сначала новые</option>
+          <option value="title" {% if sort == 'title' %}selected{% endif %}>По названию</option>
+        </select>
+      </p>
+      <button type="submit" class="btn" style="width:100%;">Показать</button>
+    </form>
+  </aside>
+
+  <section>
+    <h2>Каталог кино</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px;">
+      {% for movie in page_obj %}
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            {% if movie.poster %}
+              <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" style="width:100%; height:280px; object-fit:cover; border-radius:8px;">
+            {% else %}
+              <div style="width:100%; height:280px; background:#2b2b2b; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#777;">Нет постера</div>
+            {% endif %}
+
+            <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:12px; color:#aaa;">{{ movie.get_content_type_display }} · {{ movie.year }}</span>
+              {% if movie.average_rating %}
+                <span class="rating-badge {% if movie.average_rating >= 7 %}rating-high{% endif %}">
+                  {{ movie.average_rating }}
+                </span>
+              {% else %}
+                <span class="rating-badge">—</span>
+              {% endif %}
+            </div>
+
+            <h4 style="margin:8px 0 4px;">
+              <a href="{{ movie.get_absolute_url }}" style="color:#fff;">{{ movie.title }}</a>
+            </h4>
+            <div style="font-size:12px; color:#999;">
+              {% for g in movie.genres.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-dark js-watchlist"
+            data-url="{% url 'ajax_toggle_watchlist' movie.id %}"
+            style="margin-top:12px; width:100%;"
+          >
+            {% if movie.id in watchlist_ids %}✓ В списке{% else %}+ Буду смотреть{% endif %}
+          </button>
+        </div>
+      {% empty %}
+        <p>Фильмы не найдены. Добавь их через <a href="/admin/">админ-панель</a>.</p>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top:20px;">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">← Назад</a>
+      {% endif %}
+      <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Вперёд →</a>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

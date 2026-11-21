@@ -1,0 +1,29 @@
+{% extends "cinema/base.html" %}
+{% block title %}Профиль: {{ user.username }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Профиль: {{ user.username }}</h1>
+
+  <h2>Буду смотреть ({{ watchlist.count }})</h2>
+  <ul>
+    {% for item in watchlist %}
+      <li>
+        <a href="{{ item.movie.get_absolute_url }}">{{ item.movie.title }} ({{ item.movie.year }})</a>
+      </li>
+    {% empty %}
+      <li style="color:#999;">Список пока пуст.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Мои оценки ({{ ratings.count }})</h2>
+  <ul>
+    {% for r in ratings %}
+      <li>
+        <a href="{{ r.movie.get_absolute_url }}">{{ r.movie.title }}</a> — <strong>{{ r.score }}/10</strong>
+      </li>
+    {% empty %}
+      <li style="color:#999;">Вы ещё не ставили оценки.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "cinema/base.html" %}
+{% block title %}{{ movie.title }} ({{ movie.year }}) — Кинопоиск{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:grid; grid-template-columns: 280px 1fr; gap: 24px;">
+    <div>
+      {% if movie.poster %}
+        <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" style="width:100%; border-radius:10px;">
+      {% else %}
+        <div style="width:100%; height:380px; background:#2b2b2b; border-radius:10px; display:flex; align-items:center; justify-content:center;">Нет постера</div>
+      {% endif %}
+
+      <button
+        type="button"
+        class="btn-dark js-watchlist"
+        data-url="{% url 'ajax_toggle_watchlist' movie.id %}"
+        style="width:100%; margin-top:12px;"
+      >
+        {% if in_watchlist %}✓ В списке «Буду смотреть»{% else %}+ Буду смотреть{% endif %}
+      </button>
+
+      {% if movie.trailer_url %}
+        <a href="{{ movie.trailer_url }}" target="_blank" class="btn" style="display:block; text-align:center; margin-top:8px;">
+          ▶ Смотреть трейлер
+        </a>
+      {% endif %}
+    </div>
+
+    <div>
+      <h1 style="margin-top:0;">{{ movie.title }} ({{ movie.year }})</h1>
+      {% if movie.original_title %}
+        <p style="color:#999; margin-top:-10px;">{{ movie.original_title }} · {{ movie.age_rating }}</p>
+      {% endif %}
+
+      <div style="margin:14px 0; font-size:18px;">
+        Рейтинг зрителей:
+        {% if movie.average_rating %}
+          <span class="rating-badge {% if movie.average_rating >= 7 %}rating-high{% endif %}" style="font-size:18px;">
+            {{ movie.average_rating }}
+          </span>
+          <span style="font-size:14px; color:#aaa;">({{ movie.ratings_count }} оценок)</span>
+        {% else %}
+          <strong>пока нет оценок</strong>
+        {% endif %}
+      </div>
+
+      <p>{{ movie.description }}</p>
+
+      <h3>О фильме</h3>
+      <table cellpadding="6">
+        <tr><td style="color:#999;">Год производства:</td><td>{{ movie.year }}</td></tr>
+        <tr><td style="color:#999;">Страна:</td><td>{{ movie.country }}</td></tr>
+        <tr><td style="color:#999;">Жанр:</td><td>{% for g in movie.genres.all %}<a href="{{ g.get_absolute_url }}">{{ g.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td></tr>
+        {% if movie.tagline %}<tr><td style="color:#999;">Слоган:</td><td>«{{ movie.tagline }}»</td></tr>{% endif %}
+        <tr><td style="color:#999;">Режиссёр:</td><td>{% for d in movie.directors.all %}<a href="{{ d.get_absolute_url }}">{{ d.full_name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td></tr>
+        <tr><td style="color:#999;">В главных ролях:</td><td>{% for a in movie.actors.all %}<a href="{{ a.get_absolute_url }}">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td></tr>
+        <tr><td style="color:#999;">Время:</td><td>{{ movie.duration }} мин.</td></tr>
+      </table>
+
+      {% if user.is_authenticated %}
+        <h3>Оценить (1–10){% if user_rating %} — ваша оценка: {{ user_rating }}{% endif %}</h3>
+        <form method="post" style="display:flex; gap:6px; flex-wrap:wrap;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="rate">
+          {% for n in score_range %}
+            <button type="submit" name="score" value="{{ n }}" class="{% if user_rating == n %}btn{% else %}btn-dark{% endif %}">
+              {{ n }}
+            </button>
+          {% endfor %}
+        </form>
+      {% else %}
+        <p><a href="{% url 'login' %}">Войдите</a>, чтобы поставить оценку и написать рецензию.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <hr style="border-color:#2f2f2f; margin:24px 0;">
+
+  <h2>Рецензии зрителей ({{ movie.reviews.count }})</h2>
+  {% for rev in movie.reviews.all %}
+    <div style="padding:14px; border-radius:10px; margin-bottom:12px;
+      background:{% if rev.tone == 'positive' %}#1b2e1e{% elif rev.tone == 'negative' %}#331c1c{% else %}#262626{% endif %};">
+      <div style="display:flex; justify-content:space-between;">
+        <strong>{{ rev.title }}</strong>
+        <span style="font-size:13px; color:#bbb;">{{ rev.user.username }} · {{ rev.created_at|date:"d.m.Y" }}</span>
+      </div>
+      <p style="margin-bottom:0;">{{ rev.text }}</p>
+    </div>
+  {% empty %}
+    <p style="color:#999;">Рецензий пока нет. Станьте первым!</p>
+  {% endfor %}
+
+  {% if user.is_authenticated %}
+    <h3>Написать рецензию</h3>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="review">
+      <p>
+        <label>Тип рецензии:</label><br>
+        <select name="tone" style="padding:6px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+          <option value="positive">Положительная</option>
+          <option value="neutral">Нейтральная</option>
+          <option value="negative">Отрицательная</option>
+        </select>
+      </p>
+      <p>
+        <label>Заголовок:</label><br>
+        <input type="text" name="title" required style="width:100%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+      </p>
+      <p>
+        <label>Текст рецензии:</label><br>
+        <textarea name="text" rows="4" required style="width:100%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444;"></textarea>
+      </p>
+      <button type="submit" class="btn">Опубликовать рецензию</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

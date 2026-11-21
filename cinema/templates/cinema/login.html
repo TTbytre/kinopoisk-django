@@ -1,0 +1,20 @@
+{% extends "cinema/base.html" %}
+{% block title %}Вход — Кинопоиск{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 420px; margin: 0 auto;">
+  <h1>Вход</h1>
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label>Логин</label><br>
+      <input type="text" name="username" required style="width:100%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+    </p>
+    <p>
+      <label>Пароль</label><br>
+      <input type="password" name="password" required style="width:100%; padding:8px; background:#2a2a2a; color:#fff; border:1px solid #444;">
+    </p>
+    <button type="submit" class="btn">Войти</button>
+  </form>
+  <p>Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a></p>
+</div>
+{% endblock %}

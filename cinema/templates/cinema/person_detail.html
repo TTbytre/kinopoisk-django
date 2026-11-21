@@ -1,0 +1,39 @@
+{% extends "cinema/base.html" %}
+{% block title %}{{ person.full_name }} — Кинопоиск{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:grid; grid-template-columns: 220px 1fr; gap: 20px;">
+    <div>
+      {% if person.photo %}
+        <img src="{{ person.photo.url }}" alt="{{ person.full_name }}" style="width:100%; border-radius:10px;">
+      {% else %}
+        <div style="width:100%; height:280px; background:#2b2b2b; border-radius:10px; display:flex; align-items:center; justify-content:center;">Нет фото</div>
+      {% endif %}
+    </div>
+    <div>
+      <h1>{{ person.full_name }}</h1>
+      {% if person.birth_date %}<p>Дата рождения: {{ person.birth_date|date:"d.m.Y" }}</p>{% endif %}
+      {% if person.country %}<p>Страна: {{ person.country }}</p>{% endif %}
+      <p>{{ person.bio }}</p>
+    </div>
+  </div>
+
+  {% if directed %}
+    <h3>Режиссёр</h3>
+    <ul>
+      {% for m in directed %}
+        <li><a href="{{ m.get_absolute_url }}">{{ m.title }} ({{ m.year }})</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if acted %}
+    <h3>Актёр</h3>
+    <ul>
+      {% for m in acted %}
+        <li><a href="{{ m.get_absolute_url }}">{{ m.title }} ({{ m.year }})</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}
