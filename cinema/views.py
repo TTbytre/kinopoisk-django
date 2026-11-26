@@ -225,3 +225,74 @@ def register_view(request):
             return redirect('catalog')
 
     return render(request, 'cinema/register.html')
+
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Movie
+
+
+def movie_create_view(request):
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        original_title = request.POST.get("original_title", "").strip()
+        slug = request.POST.get("slug", "").strip()
+        tagline = request.POST.get("tagline", "").strip()
+        description = request.POST.get("description", "").strip()
+        release_year = request.POST.get("release_year") or None
+        country = request.POST.get("country", "").strip()
+        duration = request.POST.get("duration", "").strip()
+        age_rating = request.POST.get("age_rating", "").strip()
+        poster = request.FILES.get("poster")
+        is_published = "is_published" in request.POST
+
+        if title and slug:
+            movie = Movie.objects.create(
+                title=title,
+                original_title=original_title,
+                slug=slug,
+                tagline=tagline,
+                description=description,
+                release_year=release_year,
+                country=country,
+                duration=duration,
+                age_rating=age_rating,
+                poster=poster,
+                is_published=is_published,
+            )
+            return redirect("movie_detail", slug=movie.slug)
+
+    return render(request, "cinema/movie_create.html")
+
+
+def movie_update_view(request, slug):
+    movie = get_object_or_404(Movie, slug=slug)
+
+    if request.method == "POST":
+        movie.title = request.POST.get("title", "").strip()
+        movie.original_title = request.POST.get("original_title", "").strip()
+        movie.slug = request.POST.get("slug", "").strip()
+        movie.tagline = request.POST.get("tagline", "").strip()
+        movie.description = request.POST.get("description", "").strip()
+        movie.release_year = request.POST.get("release_year") or None
+        movie.country = request.POST.get("country", "").strip()
+        movie.duration = request.POST.get("duration", "").strip()
+        movie.age_rating = request.POST.get("age_rating", "").strip()
+        movie.is_published = "is_published" in request.POST
+
+        if "poster" in request.FILES:
+            movie.poster = request.FILES["poster"]
+
+        if movie.title and movie.slug:
+            movie.save()
+            return redirect("movie_detail", slug=movie.slug)
+
+    return render(request, "cinema/movie_update.html", {"movie": movie})
+
+
+def movie_delete_view(request, slug):
+    movie = get_object_or_404(Movie, slug=slug)
+
+    if request.method == "POST":
+        movie.delete()
+        return redirect("catalog")
+
+    return render(request, "cinema/movie_confirm_delete.html", {"movie": movie})

@@ -1,0 +1,38 @@
+{% extends "cinema/base.html" %}
+
+{% block content %}
+  <h1>Добавить фильм / сериал</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>
+      <label>Название:</label><br>
+      <input type="text" name="title" required>
+    </p>
+    <p>
+      <label>Slug (например, igra-v-osminoga):</label><br>
+      <input type="text" name="slug" required>
+    </p>
+    <p>
+      <label>Слоган:</label><br>
+      <input type="text" name="tagline">
+    </p>
+    <p>
+      <label>Описание:</label><br>
+      <textarea name="description" rows="4"></textarea>
+    </p>
+    <p>
+      <label>Год выхода:</label><br>
+      <input type="number" name="release_year">
+    </p>
+    <p>
+      <label>Постер:</label><br>
+      <input type="file" name="poster" accept="image/*">
+    </p>
+    <p>
+      <label>
+        <input type="checkbox" name="is_published" checked> Опубликован
+      </label>
+    </p>
+    <button type="submit">Создать</button>
+  </form>
+{% endblock %}
