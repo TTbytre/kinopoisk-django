@@ -2,6 +2,8 @@
 
 {% block content %}
   <h1>Удалить «{{ movie.title }}»?</h1>
+  <p>Это действие удалит запись из базы данных.</p>
+
   <form method="post">
     {% csrf_token %}
     <button type="submit">Да, удалить</button>

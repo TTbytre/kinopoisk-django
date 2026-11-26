@@ -1,7 +1,14 @@
 {% extends "cinema/base.html" %}
 
 {% block content %}
-  <h1>Изменить «{{ movie.title }}»</h1>
+  <h1>Изменить: {{ movie.title }}</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <p>
@@ -13,19 +20,35 @@
       <input type="text" name="slug" value="{{ movie.slug }}" required>
     </p>
     <p>
+      <label>Оригинальное название:</label><br>
+      <input type="text" name="original_title" value="{{ movie.original_title|default:'' }}">
+    </p>
+    <p>
       <label>Слоган:</label><br>
       <input type="text" name="tagline" value="{{ movie.tagline|default:'' }}">
     </p>
     <p>
       <label>Описание:</label><br>
-      <textarea name="description" rows="4">{{ movie.description }}</textarea>
+      <textarea name="description" rows="4">{{ movie.description|default:'' }}</textarea>
     </p>
     <p>
       <label>Год выхода:</label><br>
       <input type="number" name="release_year" value="{{ movie.release_year|default:'' }}">
     </p>
     <p>
-      <label>Новый постер (если нужно заменить):</label><br>
+      <label>Страна:</label><br>
+      <input type="text" name="country" value="{{ movie.country|default:'' }}">
+    </p>
+    <p>
+      <label>Длительность:</label><br>
+      <input type="text" name="duration" value="{{ movie.duration|default:'' }}">
+    </p>
+    <p>
+      <label>Возрастной рейтинг:</label><br>
+      <input type="text" name="age_rating" value="{{ movie.age_rating|default:'' }}">
+    </p>
+    <p>
+      <label>Новый постер (если хочешь заменить):</label><br>
       <input type="file" name="poster" accept="image/*">
     </p>
     <p>

@@ -116,3 +116,6 @@
   {% endif %}
 </div>
 {% endblock %}
+
+<a href="{% url 'movie_update' slug=movie.slug %}">Изменить</a>
+<a href="{% url 'movie_delete' slug=movie.slug %}">Удалить</a>

@@ -10,6 +10,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from .models import Genre, Movie, Person, Rating, Review, Watchlist
+from django.contrib import messages
+from django.db import IntegrityError
+from .models import Movie
 
 
 def catalog_view(request):
@@ -226,8 +229,7 @@ def register_view(request):
 
     return render(request, 'cinema/register.html')
 
-from django.shortcuts import get_object_or_404, redirect, render
-from .models import Movie
+
 
 
 def movie_create_view(request):
@@ -237,14 +239,19 @@ def movie_create_view(request):
         slug = request.POST.get("slug", "").strip()
         tagline = request.POST.get("tagline", "").strip()
         description = request.POST.get("description", "").strip()
-        release_year = request.POST.get("release_year") or None
+        year_raw = request.POST.get("release_year", "").strip()
+        release_year = int(year_raw) if year_raw.isdigit() else None
         country = request.POST.get("country", "").strip()
         duration = request.POST.get("duration", "").strip()
         age_rating = request.POST.get("age_rating", "").strip()
         poster = request.FILES.get("poster")
         is_published = "is_published" in request.POST
 
-        if title and slug:
+        if not title or not slug:
+            messages.error(request, "Заполни хотя бы название и slug.")
+            return render(request, "cinema/movie_create.html")
+
+        try:
             movie = Movie.objects.create(
                 title=title,
                 original_title=original_title,
@@ -258,7 +265,10 @@ def movie_create_view(request):
                 poster=poster,
                 is_published=is_published,
             )
+            messages.success(request, f"Фильм «{movie.title}» добавлен!")
             return redirect("movie_detail", slug=movie.slug)
+        except IntegrityError:
+            messages.error(request, "Такой slug уже существует. Придумай другой, например igra-v-osminoga-2.")
 
     return render(request, "cinema/movie_create.html")
 
@@ -267,12 +277,20 @@ def movie_update_view(request, slug):
     movie = get_object_or_404(Movie, slug=slug)
 
     if request.method == "POST":
-        movie.title = request.POST.get("title", "").strip()
+        title = request.POST.get("title", "").strip()
+        new_slug = request.POST.get("slug", "").strip()
+        year_raw = request.POST.get("release_year", "").strip()
+
+        if not title or not new_slug:
+            messages.error(request, "Название и slug не могут быть пустыми.")
+            return render(request, "cinema/movie_update.html", {"movie": movie})
+
+        movie.title = title
         movie.original_title = request.POST.get("original_title", "").strip()
-        movie.slug = request.POST.get("slug", "").strip()
+        movie.slug = new_slug
         movie.tagline = request.POST.get("tagline", "").strip()
         movie.description = request.POST.get("description", "").strip()
-        movie.release_year = request.POST.get("release_year") or None
+        movie.release_year = int(year_raw) if year_raw.isdigit() else None
         movie.country = request.POST.get("country", "").strip()
         movie.duration = request.POST.get("duration", "").strip()
         movie.age_rating = request.POST.get("age_rating", "").strip()
@@ -281,9 +299,12 @@ def movie_update_view(request, slug):
         if "poster" in request.FILES:
             movie.poster = request.FILES["poster"]
 
-        if movie.title and movie.slug:
+        try:
             movie.save()
+            messages.success(request, f"Изменения для «{movie.title}» сохранены.")
             return redirect("movie_detail", slug=movie.slug)
+        except IntegrityError:
+            messages.error(request, "Этот slug уже занят другим фильмом.")
 
     return render(request, "cinema/movie_update.html", {"movie": movie})
 
@@ -292,7 +313,9 @@ def movie_delete_view(request, slug):
     movie = get_object_or_404(Movie, slug=slug)
 
     if request.method == "POST":
+        title = movie.title
         movie.delete()
+        messages.success(request, f"«{title}» удалён.")
         return redirect("catalog")
 
     return render(request, "cinema/movie_confirm_delete.html", {"movie": movie})

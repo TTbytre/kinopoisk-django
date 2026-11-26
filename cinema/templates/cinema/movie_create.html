@@ -1,16 +1,27 @@
 {% extends "cinema/base.html" %}
 
 {% block content %}
-  <h1>Добавить фильм / сериал</h1>
+  <h1>Добавить фильм или сериал</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <p>
       <label>Название:</label><br>
-      <input type="text" name="title" required>
+      <input type="text" name="title" placeholder="Игра в осьминога" required>
     </p>
     <p>
-      <label>Slug (например, igra-v-osminoga):</label><br>
-      <input type="text" name="slug" required>
+      <label>Slug (латиницей через дефис):</label><br>
+      <input type="text" name="slug" placeholder="igra-v-osminoga" required>
+    </p>
+    <p>
+      <label>Оригинальное название:</label><br>
+      <input type="text" name="original_title" placeholder="Octopus Game">
     </p>
     <p>
       <label>Слоган:</label><br>
@@ -23,6 +34,18 @@
     <p>
       <label>Год выхода:</label><br>
       <input type="number" name="release_year">
+    </p>
+    <p>
+      <label>Страна:</label><br>
+      <input type="text" name="country">
+    </p>
+    <p>
+      <label>Длительность:</label><br>
+      <input type="text" name="duration">
+    </p>
+    <p>
+      <label>Возрастной рейтинг:</label><br>
+      <input type="text" name="age_rating" placeholder="16+">
     </p>
     <p>
       <label>Постер:</label><br>
